@@ -3,7 +3,7 @@ import sys
 import os
 from plotly.subplots import make_subplots
 import plotly.graph_objects as go
-
+import numpy as np
 
 def resource_path(relative_path):
     """ Get absolute path to resource, works for dev and for PyInstaller """
@@ -20,14 +20,16 @@ library_data = pd.read_csv(resource_path("libraries_in_Poland.csv"),sep=";")
 
 
 fig = make_subplots(
-    rows=4, cols=2, 
+    rows=6, cols=2, 
     subplot_titles=("Number of libraries in each Voivodeship",),
-    vertical_spacing=0.3,
-    horizontal_spacing=0.25,
+    vertical_spacing=0.2,
+    horizontal_spacing=0.2,
     specs=[
-        [{"colspan":2,"rowspan":2},None],
+        [{"colspan":2,"rowspan":2,"type": "bar"},None], #"colspan":2,"rowspan":2,
         [None,None],
-        [{"rowspan":2}, {"rowspan":2}],
+        [{"rowspan":2,"type": "bar"}, {"rowspan":2,"type": "bar"}],#"rowspan":2,"rowspan":2,
+        [None,None],
+        [{"type":"pie","colspan":2,"rowspan":2},None],
         [None,None]
     ]
 )
@@ -96,6 +98,23 @@ fig.add_trace(
 fig["layout"]["xaxis2"].update(title="Number of librarians", title_font_size = 25, tickfont_size=14, dtick=0.25)
 fig["layout"]["xaxis3"].update(title="Number of books", title_font_size = 25, tickfont_size=14, dtick=2500)
 
+customdata  = np.stack((librarians_data["Voivodeship"],librarians_data["Number of librarians per library"]), axis=-1)
 
+
+print(customdata)
+hovertemplate="<br>".join([
+        "Voivodeship: %{customdata[0][0]}",
+        "number of librarians: %{customdata[0][1]}",
+    ])
+fig.add_trace(
+    go.Pie(
+        values=librarians_data["Number of librarians per library"],
+        labels=librarians_data["Voivodeship"],
+        name="",
+        customdata=customdata,
+        hovertemplate=hovertemplate
+        ),
+    row = 5, col = 1
+)
 
 fig.show()
